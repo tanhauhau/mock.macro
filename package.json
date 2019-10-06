@@ -1,0 +1,12 @@
+{
+  "name": "mock.macro",
+  "version": "1.0.0",
+  "main": "src/index.macro.js",
+  "repository": "https://github.com/tanhauhau/mock.macro.git",
+  "author": "Tan Li Hau <lhtan93@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "babel-plugin-macros": "^2.6.1",
+    "faker": "^4.1.0"
+  }
+}

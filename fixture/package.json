@@ -1,0 +1,20 @@
+{
+  "name": "fixture",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Tan Li Hau <lhtan93@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "build": "babel index.mjs",
+    "build-and-run": "babel -o output.js index.mjs && node output.js"
+  },
+  "dependencies": {
+    "@babel/core": "^7.6.2",
+    "@babel/plugin-syntax-flow": "^7.2.0",
+    "@babel/plugin-transform-flow-strip-types": "^7.4.4",
+    "babel-plugin-macros": "^2.6.1"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.6.2"
+  }
+}
