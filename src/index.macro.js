@@ -5,60 +5,71 @@ module.exports = createMacro(mockMacro);
 function mockMacro({ references, state, babel }) {
   const { t, template } = babel;
 
-  if (references.mock.length > 0) {
-    state.file.path.unshiftContainer(
-      'body',
-      template('const faker = require("faker")')()
+  if (references.MockResponse && references.MockResponse.length > 0) {
+    const fakerIdentifier = state.file.path.scope.generateUidIdentifier(
+      'faker'
     );
-  }
-  references.mock.forEach(reference => {
-    assert(
-      reference.parent.type === 'GenericTypeAnnotation',
-      'Must use as a generic type, eg: mock<{ a: number >}'
-    );
-    const functionDeclaration = reference.getFunctionParent();
-    assert(
-      functionDeclaration &&
-        functionDeclaration.get('returnType').isAncestor(reference),
-      'Must use as a return type of a function, eg: function foo(): mock<{ a: number }> { }'
-    );
-    const typeDef = reference.parentPath.get('typeParameters.params.0').node;
-    functionDeclaration.get('returnType.typeAnnotation').replaceWith(typeDef);
+    const importStatement = babel.template("import %%FAKER%% from 'faker'")({
+      FAKER: fakerIdentifier,
+    });
+    state.file.path.unshiftContainer('body', importStatement);
 
-    functionDeclaration
-      .get('body')
-      .unshiftContainer('body', template('return ' + generateCode(typeDef))());
-  });
-}
-
-function assert(test, message) {
-  if (!test) {
-    throw new MacroError(message);
-  }
-}
-
-function generateCode(node) {
-  switch (node.type) {
-    case 'ObjectTypeAnnotation':
-      return (
-        '{' +
-        node.properties
-          .map(
-            property =>
-              generateCode(property.key) + ':' + generateCode(property.value)
-          )
-          .join(',') +
-        '}'
+    references.MockResponse.forEach(reference => {
+      assert(
+        reference.parent.type === 'GenericTypeAnnotation',
+        'Must use as a generic type, eg: mock<{ a: number >}'
       );
-    case 'NumberTypeAnnotation':
-      return 'faker.random.number()';
-    case 'StringTypeAnnotation':
-      return 'faker.random.word()';
-    case 'BooleanTypeAnnotation':
-      return 'faker.random.boolean()';
-    case 'Identifier':
-      return node.name;
-    default:
-      throw MacroError(`Unknown type definition: ${node.type}`);
+      const functionDeclaration = reference.getFunctionParent();
+      assert(
+        functionDeclaration &&
+          functionDeclaration.get('returnType').isAncestor(reference),
+        'Must use as a return type of a function, eg: function foo(): mock<{ a: number }> { }'
+      );
+      const typeDef = reference.parentPath.get('typeParameters.params.0').node;
+      functionDeclaration.get('returnType.typeAnnotation').replaceWith(typeDef);
+
+      functionDeclaration
+        .get('body')
+        .unshiftContainer(
+          'body',
+          babel.types.returnStatement(
+            generateFakerCode(fakerIdentifier, typeDef)
+          )
+        );
+    });
+  }
+
+  function assert(test, message) {
+    if (!test) {
+      throw new MacroError(message);
+    }
+  }
+
+  function generateFakerCode(fakerIdentifier, typeDef) {
+    switch (typeDef.type) {
+      case 'ObjectTypeAnnotation':
+        return babel.types.objectExpression(
+          typeDef.properties.map(property =>
+            babel.types.objectProperty(
+              babel.types.identifier(property.key.name),
+              generateFakerCode(fakerIdentifier, property.value)
+            )
+          )
+        );
+      case 'NumberTypeAnnotation':
+        return babel.template.expression('%%FAKER%%.random.number()')({
+          FAKER: fakerIdentifier,
+        });
+      case 'StringTypeAnnotation':
+        return babel.template.expression('%%FAKER%%.random.word()')({
+          FAKER: fakerIdentifier,
+        });
+      case 'BooleanTypeAnnotation':
+        return babel.template.expression('%%FAKER%%.random.boolean()')({
+          FAKER: fakerIdentifier,
+        });
+      default:
+        throw new MacroError(`Unknown type definition: ${typeDef.type}`);
+    }
   }
 }

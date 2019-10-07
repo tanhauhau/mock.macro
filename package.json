@@ -5,8 +5,20 @@
   "repository": "https://github.com/tanhauhau/mock.macro.git",
   "author": "Tan Li Hau <lhtan93@gmail.com>",
   "license": "MIT",
+  "files": [
+    "src"
+  ],
   "dependencies": {
     "babel-plugin-macros": "^2.6.1",
     "faker": "^4.1.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.6.2",
+    "@babel/helper-plugin-test-runner": "^7.1.0",
+    "@babel/plugin-syntax-flow": "^7.2.0",
+    "jest": "^24.9.0"
+  },
+  "jest": {
+    "testRegex": "./__tests__/index.js"
   }
 }
