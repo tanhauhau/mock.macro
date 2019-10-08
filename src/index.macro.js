@@ -26,6 +26,12 @@ function mockMacro({ references, state, babel }) {
         'Must use as a return type of a function, eg: function foo(): mock<{ a: number }> { }'
       );
       const typeDef = reference.parentPath.get('typeParameters.params.0').node;
+
+      const secondParam = reference.parentPath.get('typeParameters.params.1');
+      if (secondParam && secondParam.isBooleanLiteralTypeAnnotation({ value: false })) {
+        return;
+      }
+
       functionDeclaration.get('returnType.typeAnnotation').replaceWith(typeDef);
 
       functionDeclaration
